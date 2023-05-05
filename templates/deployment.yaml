@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aws-config.fullname" . }}
+  labels:
+    app: {{ include "aws-config.name" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "aws-config.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "aws-config.name" . }}
+    spec:
+      containers:
+        - name: {{ include "aws-config.name" . }}
+          image: node:14
+          command: ["node", "/app/index.js"]
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-secrets
+                  key: accessKeyId
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-secrets
+                  key: secretAccessKey
+            - name: AWS_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: aws-secrets
+                  key: region
+          volumeMounts:
+            - name: app
+              mountPath: /app
+      volumes:
+        - name: app
+          configMap:
+            name: {{ include "aws-config.fullname" . }}
+            items:
+              - key: index.js
+                path: index.js
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "aws-config.fullname" . }}
+  labels:
+    app: {{ include "aws-config.name" . }}
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app: {{ include "aws-config.name" . }}
+
