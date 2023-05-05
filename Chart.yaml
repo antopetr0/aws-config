@@ -1,0 +1,5 @@
+apiVersion: v2
+name: aws-config
+description: A Node.js package for handling S3 buckets using AWS keys from environment variables
+version: 0.1.0
+
